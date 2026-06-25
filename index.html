@@ -5,29 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MedPrep Prototype</title>
   
-  <!-- CDN Imports for React and Babel -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
-  <!-- CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 </head>
 <body>
   <div id="root"></div>
 
-  <!-- IMPORTANT: type="text/babel" is required for the browser to run this -->
   <script type="text/babel">
     const { useState, useEffect } = React;
 
     function MedPrep() {
+      // Safely initialize localStorage to prevent fatal crashes in strict browsers
+      const [apiKey, setApiKey] = useState(() => {
+        try {
+          return localStorage.getItem("MEDPREP_GEMINI_KEY") || "";
+        } catch (error) {
+          return "";
+        }
+      });
+      
       const [query, setQuery] = useState("");
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState(null);
-      const [apiKey, setApiKey] = useState(() => localStorage.getItem("MEDPREP_GEMINI_KEY") || "");
 
+      // Safely set localStorage
       useEffect(() => {
-        localStorage.setItem("MEDPREP_GEMINI_KEY", apiKey);
+        try {
+          localStorage.setItem("MEDPREP_GEMINI_KEY", apiKey);
+        } catch (error) {
+          console.warn("Local storage is disabled.");
+        }
       }, [apiKey]);
 
       const analyzeQuery = async () => {
@@ -46,10 +56,17 @@
                     contents: [{ role: "user", parts: [{ text: query }] }]
                 })
             });
+            
             const data = await response.json();
+            
+            // Catch API-level errors (like an invalid key)
+            if (!response.ok) {
+                throw new Error(data.error?.message || "API Request Failed");
+            }
+            
             alert("API Response: " + JSON.stringify(data));
         } catch (err) {
-            setError("Analysis failed.");
+            setError(err.message || "Analysis failed.");
         } finally {
             setLoading(false);
         }
@@ -69,12 +86,23 @@
             rows="4" 
             value={query} 
             onChange={(e) => setQuery(e.target.value)} 
-            style={{ width: "100%", padding: "10px" }}
+            style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
           />
-          <button onClick={analyzeQuery} style={{ width: "100%", padding: "10px", marginTop: "10px" }}>
+          <button 
+            onClick={analyzeQuery} 
+            disabled={loading}
+            style={{ 
+              width: "100%", 
+              padding: "10px", 
+              cursor: loading ? "not-allowed" : "pointer",
+              backgroundColor: loading ? "#ccc" : "#007BFF",
+              color: "white",
+              border: "none",
+              borderRadius: "4px"
+            }}>
             {loading ? "Processing..." : "Analyze"}
           </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
         </div>
       );
     }
