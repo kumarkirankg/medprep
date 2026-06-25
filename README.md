@@ -2,7 +2,7 @@
 
 **A concept prototype built for EMMA, an NHS GP surgery AI receptionist by QuantumLoopAI.**
 
-→ **[Live Demo](https://kumarkiran.kg.github.io/medprep)** ← *(replace with your actual link)*
+→ **[Live Demo](https://kumarkiran.kg.github.io/medprep)** 
 
 ---
 
