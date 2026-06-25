@@ -1,6 +1,8 @@
 # MedPrep 💊 | Medication Intelligence Layer
 
 > 👉 **[Live Interactive Demo: Try MedPrep Here](https://kumarkirankg.github.io/medprep/)**
+>
+> 🛠️ Note for Reviewers: To protect private developer limits, this prototype securely reads your own Gemini API Key via your browser's local storage. You can grab a completely free, instant sandbox key from Google AI Studio to interact with the live AI pipeline.
 
 ## Overview
 EMMA handles every inbound patient call as an AI receptionist—but medication queries require clinical intelligence before they reach a GP or pharmacist. 
