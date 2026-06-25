@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MedPrep Prototype</title>
   
-  <!-- Tabler Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   
-  <!-- React & Babel CDNs -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -21,7 +19,6 @@
       --color-background-success: #ecfdf5;
       --color-background-danger: #fef2f2;
       --color-background-info: #eff6ff;
-      --color-background-warning: #fffbeb;
       --color-text-primary: #111827;
       --color-text-secondary: #4b5563;
       --color-text-tertiary: #6b7280;
@@ -29,23 +26,14 @@
       --color-text-danger: #dc2626;
       --color-text-info: #2563eb;
       --color-text-warning: #d97706;
-      --color-border-primary: #e5e7eb;
       --color-border-secondary: #d1d5db;
       --color-border-tertiary: #e5e7eb;
       --color-border-success: #a7f3d0;
       --color-border-danger: #fecaca;
-      --color-border-info: #bfdbfe;
       --color-border-warning: #fde68a;
       --border-radius-md: 6px;
       --border-radius-lg: 10px;
     }
-    body {
-      background-color: var(--color-background-primary);
-      margin: 0;
-      padding: 2rem 1rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   </style>
 </head>
 <body>
@@ -54,47 +42,19 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    const SAMPLE_QUERIES = [
-      { label: "ACE inhibitor cough", text: "I've been taking ramipril 5mg for two weeks now and I've developed a really persistent dry cough. Is this normal and should I stop taking it or carry on?" },
-      { label: "Ran out of blood pressure tablets", text: "I've run out of my amlodipine and can't get an appointment for three weeks. I've already missed two days of doses. Can I just stop taking it until I see the doctor or is that dangerous?" },
-      { label: "Child's fever not settling", text: "My 8-year-old has had a temperature of 39.5 since last night. I gave calpol five hours ago but it hasn't come down much. How much ibuprofen can I give and is it safe to give both together?" }
-    ];
-
-    const PRIORITY_CONFIG = {
-      urgent: { label: "Urgent", icon: "ti-alert-triangle", bg: "var(--color-background-danger)", text: "var(--color-text-danger)", border: "var(--color-border-danger)" },
-      routine: { label: "Routine", icon: "ti-clock", bg: "var(--color-background-info)", text: "var(--color-text-info)", border: "var(--color-border-info)" },
-      self_care: { label: "Self-care", icon: "ti-leaf", bg: "var(--color-background-success)", text: "var(--color-text-success)", border: "var(--color-border-success)" }
-    };
-
-    function SectionLabel({ icon, children }) {
-      return (
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
-          {icon && <i className={`ti ${icon}`} style={{ fontSize: 13, color: "var(--color-text-tertiary)" }}></i>}
-          <span style={{ fontSize: 12, color: "var(--color-text-tertiary)", fontWeight: 500 }}>{children}</span>
-        </div>
-      );
-    }
-
     function MedPrep() {
       const [query, setQuery] = useState("");
       const [result, setResult] = useState(null);
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState(null);
-      
-      // Pull and update securely from browser localStorage
-      const [apiKey, setApiKey] = useState(() => {
-        return localStorage.getItem("MEDPREP_GEMINI_KEY") || "";
-      });
+      const [apiKey, setApiKey] = useState(() => localStorage.getItem("MEDPREP_GEMINI_KEY") || "");
 
-      useEffect(() => {
-        localStorage.setItem("MEDPREP_GEMINI_KEY", apiKey);
-      }, [apiKey]);
+      useEffect(() => { localStorage.setItem("MEDPREP_GEMINI_KEY", apiKey); }, [apiKey]);
 
       const analyzeQuery = async () => {
         if (!query.trim() || loading) return;
-        
         if (!apiKey.trim()) {
-          setError("Please insert a Gemini API Key in the configuration field above to test the app.");
+          setError("Please paste a Gemini API Key in the config box below.");
           return;
         }
 
@@ -103,154 +63,47 @@
         setResult(null);
 
         try {
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey.trim()}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: `Patient query: "${query}"` }] }],
-                systemInstruction: {
-                  parts: [{
-                    text: `You are MedPrep. You triage medication queries. Respond ONLY with a valid JSON object matching this schema:
-{
-  "priority": "urgent" | "routine" | "self_care",
-  "urgency_reason": "one sentence explaining the decision",
-  "summary_for_clinician": "2-3 sentence clinical note including meds, symptoms, flags",
-  "patient_response_script": "What EMMA should say to patient. 2-3 warm sentences. No clinical advice.",
-  "next_action": "Specific next step with timeframe",
-  "key_flags": ["3-4 short clinical flags"],
-  "emma_resolves": false
-}`
-                  }]
-                },
-                generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
-              })
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData?.error?.message || "API Request Failed");
-          }
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey.trim()}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: `Patient query: "${query}"` }] }],
+              systemInstruction: { parts: [{ text: "Respond ONLY with a JSON object. Keys: priority, urgency_reason, summary_for_clinician, patient_response_script, next_action, key_flags (array), emma_resolves (boolean)." }] },
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          });
 
           const data = await response.json();
-          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          setResult(JSON.parse(rawText.trim()));
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          setResult(JSON.parse(text));
         } catch (err) {
-          setError(err.message || "Analysis failed. Please check your key and try again.");
+          setError("Analysis failed. Check your API key.");
         } finally {
           setLoading(false);
         }
       };
 
-      const cfg = result ? (PRIORITY_CONFIG[result.priority] || PRIORITY_CONFIG.routine) : null;
-
       return (
-        <div style={{ fontFamily: "var(--font-sans)", maxWidth: 660, margin: "0 auto", padding: "0.75rem 0" }}>
-          
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "var(--border-radius-md)", background: "var(--color-background-success)", border: "0.5px solid var(--color-border-success)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <i className="ti ti-pill" style={{ fontSize: 18, color: "var(--color-text-success)" }}></i>
-              </div>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 500, color: "var(--color-text-primary)", lineHeight: 1.3 }}>MedPrep</div>
-                <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Medication intelligence layer · EMMA integration concept</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, background: "var(--color-background-success)", border: "0.5px solid var(--color-border-success)", borderRadius: "var(--border-radius-md)", padding: "5px 12px" }}>
-              <i className="ti ti-plug-connected" style={{ fontSize: 13, color: "var(--color-text-success)" }}></i>
-              <span style={{ fontSize: 12, color: "var(--color-text-success)", fontWeight: 500 }}>EMMA integration ready</span>
-            </div>
-          </div>
-
-          {/* Concept note */}
-          <div style={{ background: "var(--color-background-secondary)", borderLeft: "2px solid var(--color-border-success)", padding: "10px 14px", marginBottom: "1.25rem" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.65 }}>
-              EMMA handles every inbound patient call — but medication queries need clinical intelligence before reaching a GP or pharmacist. MedPrep sits between EMMA's call transcript and the clinical handoff: it triages urgency, generates a structured note, and scripts EMMA's response.
-            </p>
-          </div>
-
-          {/* Secure API Key Input Box */}
-          <div style={{ background: "var(--color-background-secondary)", border: "0.5px dashed var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", padding: "12px", marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>
-              🔑 DEMO CONFIGURATION (Stored locally in your own browser)
-            </label>
-            <input 
-              type="password"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              placeholder="Paste your Google Gemini API Key here to run live tests..."
-              style={{ width: "100%", fontSize: 13, padding: "8px 12px", border: "0.5px solid var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", boxSizing: "border-box" }}
-            />
-            <span style={{ fontSize: 10, color: "var(--color-text-tertiary)", display: "block", marginTop: 4 }}>
-              Don't have a key? Create a free, zero-cost key in seconds at <a href="https://aistudio.google.com/" target="_blank" style={{ color: "var(--color-text-success)" }}>Google AI Studio</a>.
-            </span>
-          </div>
-
-          {/* Input card */}
-          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 8 }}>Patient call transcript</label>
-            <textarea
-              value={query} onChange={e => setQuery(e.target.value)}
-              placeholder="Paste or type the patient's spoken query..." rows={4}
-              style={{ width: "100%", resize: "vertical", fontSize: 14, lineHeight: 1.6, color: "var(--color-text-primary)", background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: "var(--border-radius-md)", padding: "10px 12px", boxSizing: "border-box" }}
-            />
-            
-            <div style={{ marginTop: 10, marginBottom: 14 }}>
-              <span style={{ fontSize: 11, color: "var(--color-text-tertiary)", display: "block", marginBottom: 6 }}>Sample queries to try</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {SAMPLE_QUERIES.map((q, i) => (
-                  <button key={i} onClick={() => setQuery(q.text)} style={{ fontSize: 12, padding: "4px 12px", cursor: "pointer", borderRadius: "var(--border-radius-md)", border: "1px solid var(--color-border-secondary)", background: "white" }}>
-                    {q.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={analyzeQuery} disabled={loading || !query.trim()}
-              style={{ width: "100%", padding: "10px", borderRadius: "var(--border-radius-md)", fontSize: 14, fontWeight: 500, cursor: loading || !query.trim() ? "not-allowed" : "pointer", opacity: loading || !query.trim() ? 0.45 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: "#059669", color: "white", border: "none" }}
-            >
-              {loading ? "Analysing query..." : "Analyse and triage"}
-            </button>
-          </div>
-
-          {/* Error state */}
-          {error && (
-            <div style={{ background: "var(--color-background-danger)", border: "0.5px solid var(--color-border-danger)", borderRadius: "var(--border-radius-md)", padding: "10px 14px", marginBottom: "1rem", fontSize: 13, color: "var(--color-text-danger)" }}>
-              {error}
-            </div>
-          )}
-
-          {/* Output card */}
-          {result && cfg && (
-            <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px", background: cfg.bg, border: `0.5px solid ${cfg.border}`, borderRadius: "var(--border-radius-md)", marginBottom: "1.125rem" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: cfg.text }}>{cfg.label}</div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2, lineHeight: 1.5 }}>{result.urgency_reason}</div>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div>
-                  <SectionLabel icon="ti-stethoscope">Clinical summary for GP / pharmacist</SectionLabel>
-                  <div style={{ fontSize: 13, background: "var(--color-background-secondary)", padding: "10px 12px", borderRadius: "var(--border-radius-md)" }}>{result.summary_for_clinician}</div>
-                </div>
-                <div>
-                  <SectionLabel icon="ti-message-circle">EMMA response script</SectionLabel>
-                  <div style={{ fontSize: 13, background: "var(--color-background-secondary)", padding: "10px 12px", borderLeft: "2px solid var(--color-border-success)" }}>"{result.patient_response_script}"</div>
-                </div>
-                <div>
-                  <SectionLabel icon="ti-arrow-right">Next action</SectionLabel>
-                  <div style={{ fontSize: 13, fontWeight: 500, background: "var(--color-background-secondary)", padding: "10px 12px", borderRadius: "var(--border-radius-md)" }}>{result.next_action}</div>
-                </div>
-              </div>
-            </div>
-          )}
+        <div style={{ fontFamily: "var(--font-sans)", maxWidth: 660, margin: "2rem auto", padding: "1rem" }}>
+          <h1>MedPrep Prototype</h1>
+          <input 
+            type="password" 
+            placeholder="Paste your Gemini API Key here..." 
+            value={apiKey} 
+            onChange={e => setApiKey(e.target.value)}
+            style={{ width: "100%", padding: "10px", marginBottom: "1rem" }}
+          />
+          <textarea 
+            rows="4" 
+            value={query} 
+            onChange={e => setQuery(e.target.value)} 
+            placeholder="Type query here..."
+            style={{ width: "100%", padding: "10px" }}
+          />
+          <button onClick={analyzeQuery} style={{ width: "100%", padding: "10px", marginTop: "10px" }}>
+            {loading ? "Analyzing..." : "Analyse and triage"}
+          </button>
+          {result && <pre style={{ marginTop: "20px", background: "#f4f4f4", padding: "10px" }}>{JSON.stringify(result, null, 2)}</pre>}
         </div>
       );
     }
