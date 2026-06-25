@@ -86,5 +86,3 @@ The frontend is a single HTML file hosted on GitHub Pages. API calls are proxied
 ## About
 
 Built as a concept integration for **EMMA by QuantumLoopAI** — an AI receptionist designed for NHS GP surgeries.
-
-Powered by the **Claude API** by Anthropic.
