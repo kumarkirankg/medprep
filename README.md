@@ -41,7 +41,7 @@ Patient call
      ↓
 EMMA transcribes the query
      ↓
-MedPrep analyses it via Claude API
+MedPrep analyses it via Gemini API
      ↓
 Returns structured triage JSON
      ↓
@@ -49,8 +49,7 @@ EMMA reads scripted response to patient
 Clinical note routed to GP / pharmacist
 ```
 
-The frontend is a single HTML file hosted on GitHub Pages. API calls are proxied through a Cloudflare Worker so the key is never exposed in the browser or source code.
-
+The frontend is a single HTML file hosted on GitHub Pages. 
 ---
 
 ## Tech stack
@@ -58,8 +57,7 @@ The frontend is a single HTML file hosted on GitHub Pages. API calls are proxied
 | Layer | Technology |
 |---|---|
 | Frontend | React (via CDN), plain HTML/CSS |
-| AI model | Claude Sonnet (Anthropic API) |
-| API proxy | Cloudflare Workers (free tier) |
+| AI model | Gemini |
 | Hosting | GitHub Pages (free) |
 
 ---
