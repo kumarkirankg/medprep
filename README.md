@@ -14,7 +14,7 @@ EMMA handles the call. But medication queries need clinical intelligence before 
 
 **MedPrep sits in between.**
 
-It takes EMMA's call transcript, analyses it using Claude (Anthropic's AI), and returns:
+It takes EMMA's call transcript, analyses it using Gemini API, and returns:
 
 - A **triage priority** — Urgent, Routine, or Self-care
 - A **structured clinical note** ready for the GP or pharmacist
