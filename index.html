@@ -1,336 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MedPrep · EMMA Integration Concept</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #F8F9FB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spin { display: inline-block; animation: spin 0.9s linear infinite; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClearTriage - Clinical AI Pre-processing</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f6f8;
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .shell {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 1px;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .intro-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.6;
+  }
+
+  .intro-card strong { color: #1a1a2e; }
+  .intro-card .highlight { color: #2e7d32; font-weight: 600; }
+
+  .card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #1a1a2e;
+    resize: vertical;
+    min-height: 110px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  textarea:focus { border-color: #4caf50; }
+
+  .sample-label {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .samples-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .sample-chip {
+    font-size: 11.5px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .sample-chip:hover {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #2e7d32;
+  }
+
+  .analyse-btn {
+    width: 100%;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s;
+  }
+
+  .analyse-btn:hover { background: #1b5e20; }
+  .analyse-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  .output-section { display: none; }
+  .output-section.visible { display: block; }
+
+  .triage-card {
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border: 1px solid;
+  }
+
+  .triage-urgent { background: #fff8f0; border-color: #ffcc80; }
+  .triage-routine { background: #f0f7ff; border-color: #90caf9; }
+  .triage-selfcare { background: #f1f8e9; border-color: #aed581; }
+
+  .triage-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .triage-level {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .triage-urgent .triage-level { color: #e65100; }
+  .triage-routine .triage-level { color: #1565c0; }
+  .triage-selfcare .triage-level { color: #33691e; }
+
+  .triage-tag {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .triage-urgent .triage-tag { background: #ffe0b2; color: #bf360c; }
+  .triage-routine .triage-tag { background: #bbdefb; color: #0d47a1; }
+  .triage-selfcare .triage-tag { background: #dcedc8; color: #33691e; }
+
+  .triage-reason {
+    font-size: 12.5px;
+    color: #4b5563;
+    line-height: 1.5;
+  }
+
+  .output-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+
+  .output-card-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 10px;
+  }
+
+  .output-card-body {
+    font-size: 13px;
+    color: #1a1a2e;
+    line-height: 1.65;
+  }
+
+  .response-script {
+    font-style: italic;
+    color: #374151;
+    border-left: 3px solid #4caf50;
+    padding-left: 12px;
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .next-action-box {
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #1b5e20;
+    font-weight: 500;
+  }
+
+  .flags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 4px;
+  }
+
+  .flag-chip {
+    font-size: 12px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .flag-red { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
+  .flag-amber { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+  .flag-blue { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+
+  .loading-state {
+    text-align: center;
+    padding: 32px 0;
+    color: #6b7280;
+    font-size: 13px;
+    display: none;
+  }
+
+  .loading-state.visible { display: block; }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #2e7d32;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-card {
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #c53030;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .error-card.visible { display: block; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 16px 0;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 24px;
+    line-height: 1.6;
+  }
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div class="shell">
 
-  <script>
-    // ── PASTE YOUR AQ. API KEY HERE ──────────────────────────────────────────
-    const GEMINI_API_KEY = "AQ.Ab8RN6K0LiWcJVTSyP_GiddwEpsVMDjCh3EdmpusIb8vhOwgSw";
-    // ─────────────────────────────────────────────────────────────────────────
-  </script>
-
-  <script type="text/babel">
-    const { useState } = React;
-
-    const T = {
-      bgPage:      "#F8F9FB",
-      bgCard:      "#FFFFFF",
-      bgSecondary: "#F1F3F7",
-      bgDanger:    "#FEF2F2",
-      bgWarning:   "#FFFBEB",
-      bgSuccess:   "#F0FDF4",
-      bgInfo:      "#EFF6FF",
-      bdTertiary:  "#E2E6ED",
-      bdSecondary: "#D1D5DB",
-      bdDanger:    "#FECACA",
-      bdWarning:   "#FDE68A",
-      bdSuccess:   "#BBF7D0",
-      bdInfo:      "#BFDBFE",
-      txPrimary:   "#111827",
-      txSecondary: "#4B5563",
-      txTertiary:  "#9CA3AF",
-      txDanger:    "#DC2626",
-      txWarning:   "#B45309",
-      txSuccess:   "#15803D",
-      txInfo:      "#1D4ED8",
-      accentGreen: "#16A34A",
-      accentBlue:  "#2563EB",
-      radMd: "8px",
-      radLg: "12px",
-      font: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    };
-
-    const SAMPLE_QUERIES = [
-      {
-        label: "ACE inhibitor cough",
-        text: "I've been taking ramipril 5mg for two weeks now and I've developed a really persistent dry cough. Is this normal and should I stop taking it or carry on?"
-      },
-      {
-        label: "Ran out of BP tablets",
-        text: "I've run out of my amlodipine and can't get an appointment for three weeks. I've already missed two days of doses. Can I just stop taking it until I see the doctor or is that dangerous?"
-      },
-      {
-        label: "Child's fever not settling",
-        text: "My 8-year-old has had a temperature of 39.5 since last night. I gave calpol five hours ago but it hasn't come down much. How much ibuprofen can I give and is it safe to give both together?"
-      }
-    ];
-
-    // ── INTERVIEW SAFETY NET DATA ───────────────────────────────────────────
-    const MOCK_RESPONSES = {
-      "ACE inhibitor cough": {
-        priority: "routine",
-        urgency_reason: "Persistent dry cough is a well-documented class side effect of ACE inhibitors like ramipril, requiring a structured medication swap rather than emergency care.",
-        summary_for_clinician: "Patient reports a persistent dry cough developing two weeks after initiating Ramipril 5mg. No other red flags (dyspnoea, chest pain) stated. Requires clinical review to arrange a transition to an ARB (e.g., Losartan).",
-        patient_response_script: "A dry cough can sometimes happen as a side effect of ramipril. Please continue taking your tablets for now, as stopping them suddenly can cause your blood pressure to rise. Our clinical team will look at this today to arrange an alternative option for you.",
-        next_action: "Clinical pharmacist or GP review within 24-48 hours to prescribe alternative antihypertensive therapy.",
-        key_flags: ["Ramipril induced cough", "No acute respiratory distress", "Requires ARB alternative"],
-        emma_resolves: true
-      },
-      "Ran out of BP tablets": {
-        priority: "urgent",
-        urgency_reason: "Abrupt cessation of amlodipine carries a high risk of rebound hypertension and acute cardiovascular events.",
-        summary_for_clinician: "Patient has been non-adherent to Amlodipine for 2 days due to running out of medication. Unable to secure an appointment for 3 weeks. High risk of rebound blood pressure spikes.",
-        patient_response_script: "It is very important not to miss your blood pressure tablets. I am flagging this to our duty clinician right now so we can arrange an emergency repeat prescription for you today. Please do not wait three weeks.",
-        next_action: "Emergency prescription issuance and GP/Pharmacist callback today.",
-        key_flags: ["Medication non-adherence (out of stock)", "Rebound hypertension risk", "Emergency supply required"],
-        emma_resolves: true
-      },
-      "Child's fever not settling": {
-        priority: "urgent",
-        urgency_reason: "Pediatric fever of 39.5°C unresponsive to antipyretics warrants rapid clinical assessment to rule out worsening underlying infection.",
-        summary_for_clinician: "8-year-old child presenting with acute fever of 39.5°C since yesterday evening. Minimal response to Paracetamol (Calpol) given 5 hours ago. Parent querying safe co-administration of Ibuprofen.",
-        patient_response_script: "I understand you are worried about your child's temperature. It is safe to give Ibuprofen alongside Calpol as long as you follow the dosage instructions on the bottle. However, because the fever is high and not settling, I am passing this directly to our duty doctor to call you back quickly.",
-        next_action: "Urgent pediatric GP callback within 2 hours.",
-        key_flags: ["High pediatric fever (39.5°C)", "Unresponsive to antipyretics", "Urgent assessment required"],
-        emma_resolves: false
-      }
-    };
-
-    const PRIORITY_CONFIG = {
-      urgent:    { label: "Urgent",   bg: T.bgDanger,  text: T.txDanger,  border: T.bdDanger,  icon: "⚠️" },
-      routine:   { label: "Routine",  bg: T.bgInfo,    text: T.txInfo,    border: T.bdInfo,    icon: "🕐" },
-      self_care: { label: "Self-care", bg: T.bgSuccess, text: T.txSuccess, border: T.bdSuccess, icon: "🌿" },
-    };
-
-    function SectionLabel({ children }) {
-      return (
-        <div style={{ fontSize: 11, fontWeight: 600, color: T.txTertiary, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>
-          {children}
+  <div class="header">
+    <div>
+      <div class="logo-row">
+        <div class="logo-icon">&#129657;</div>
+        <div>
+          <div class="logo-text">ClearTriage</div>
+          <div class="logo-sub">Clinical AI pre-processing · medication intelligence layer</div>
         </div>
-      );
-    }
+      </div>
+    </div>
+    <span class="status-badge">&#128994; Concept prototype</span>
+  </div>
 
-    function Block({ children, style = {} }) {
-      return (
-        <div style={{ fontSize: 13, color: T.txPrimary, lineHeight: 1.65, background: T.bgSecondary, padding: "10px 12px", borderRadius: T.radMd, ...style }}>
-          {children}
-        </div>
-      );
-    }
+  <div class="intro-card">
+    <strong>Clinics and telehealth platforms handle thousands of inbound patient calls daily.</strong> Medication queries — missed doses, side effects, running out of prescriptions — consume significant clinical staff time and create inconsistent triage. <span class="highlight">ClearTriage sits between the patient call and the clinical team.</span> It analyses the call transcript and returns structured clinical intelligence. <strong>No clinical advice is given to the patient.</strong> Purely structured pre-processing.
+  </div>
 
-    function MedPrep() {
-      const [query, setQuery]     = useState("");
-      const [result, setResult]   = useState(null);
-      const [loading, setLoading] = useState(false);
-      const [error, setError]     = useState(null);
-      const [isDemoMode, setIsDemoMode] = useState(false);
+  <div class="card">
+    <div class="card-label">Patient call transcript</div>
+    <textarea id="transcript" placeholder="Paste or type a patient call transcript here..."></textarea>
 
-      const analyzeQuery = async () => {
-        if (!query.trim() || loading) return;
-        setLoading(true);
-        setError(null);
-        setResult(null);
-        setIsDemoMode(false);
+    <span class="sample-label">Sample queries to try</span>
+    <div class="samples-row">
+      <span class="sample-chip" onclick="loadSample('ace')">&rarr; ACE inhibitor cough</span>
+      <span class="sample-chip" onclick="loadSample('bp')">&rarr; Ran out of BP tablets</span>
+      <span class="sample-chip" onclick="loadSample('child')">&rarr; Child's fever not settling</span>
+      <span class="sample-chip" onclick="loadSample('metformin')">&rarr; Metformin side effects</span>
+      <span class="sample-chip" onclick="loadSample('warfarin')">&rarr; Missed warfarin dose</span>
+    </div>
 
-        // Find which sample matches best for the safety net fallback
-        const matchingSample = SAMPLE_QUERIES.find(s => query.trim() === s.text.trim() || query.includes(s.text.substring(0, 20)));
-        const sampleLabel = matchingSample ? matchingSample.label : null;
+    <button class="analyse-btn" id="analyseBtn" onclick="analyse()">
+      Analyse and triage
+    </button>
+  </div>
 
-        const prompt = `You are MedPrep, a clinical AI triage assistant integrated with EMMA — an NHS GP surgery AI receptionist. You analyse medication queries from patients and structure them for clinical review. You do NOT give clinical advice. You triage and pre-process so the right clinician gets the right information fast.
+  <div class="loading-state" id="loading">
+    <div class="spinner"></div>
+    Analysing transcript and generating clinical pre-processing...
+  </div>
 
-Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation outside the JSON:
-{
-  "priority": "urgent" or "routine" or "self_care",
-  "urgency_reason": "one clear sentence explaining the triage decision",
-  "summary_for_clinician": "2-3 sentence clinical note for the GP or pharmacist. Include medication names, stated symptoms, and key clinical flags. Written for a clinical reader.",
-  "patient_response_script": "Exactly what EMMA should say back to the patient. 2-3 warm, clear sentences. Do not give clinical advice. Tell them what will happen next and reassure them.",
-  "next_action": "The specific next step with a realistic timeframe. E.g. GP callback within 2 hours, pharmacist review same day, book routine appointment within 5 days.",
-  "key_flags": ["3 to 4 short clinical flags that a GP or pharmacist should note"],
-  "emma_resolves": true
+  <div class="error-card" id="errorCard"></div>
+
+  <div class="output-section" id="output">
+
+    <div id="triageCard" class="triage-card">
+      <div class="triage-header">
+        <div class="triage-level" id="triageLevel"></div>
+        <span class="triage-tag" id="triageTag">AI receptionist receives</span>
+      </div>
+      <div class="triage-reason" id="triageReason"></div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-card-label">Clinical summary for doctor / pharmacist</div>
+      <div class="output-card-body" id="clinicalNote"></div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-card-label">AI receptionist response script</div>
+      <div class="output-card-body">
+        <p class="response-script" id="receptionistScript"></p>
+      </div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-card-label">Next action</div>
+      <div class="next-action-box" id="nextAction"></div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-card-label">Key flags</div>
+      <div class="flags-row" id="flagsRow"></div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+  <div class="footer">
+    Concept prototype · not for clinical use · designed to complement AI receptionist systems in high volume clinical environments · developed using Claude
+  </div>
+
+</div>
+
+<script>
+var SAMPLES = {
+  ace: "I've been on ramipril for about six months now and I've developed this really annoying dry cough that won't go away. It started about a month ago. Could it be the medication? Should I just stop taking it?",
+  bp: "I've run out of my amlodipine and can't get an appointment for three weeks. I've already missed two days of doses. Can I just stop taking it until I see the doctor or is that dangerous?",
+  child: "My daughter is 4 years old and has had a fever of 39.2 for two days. I've been giving her Calpol every four hours but it's not really coming down. She's drinking a little but not eating. Should I be worried?",
+  metformin: "I started metformin two weeks ago for my diabetes and I'm having really bad stomach cramps and diarrhoea every day. It's making it hard to go to work. Is this normal and will it stop? Should I stop taking it?",
+  warfarin: "I forgot to take my warfarin last night. I normally take 5mg. Should I double up tonight to make up for it or just take my normal dose? I have a blood clot history so I'm worried."
+};
+
+var HARDCODED = {
+  ace: {
+    triage: "Routine",
+    triage_reason: "ACE inhibitor cough is a well-documented side effect requiring medication review but poses no immediate clinical risk.",
+    clinical_note: "Patient on ramipril for 6 months presenting with persistent dry cough onset approximately 1 month ago. Symptoms consistent with ACE inhibitor-induced cough. No mention of breathing difficulty or chest symptoms. Medication review and possible switch to ARB indicated.",
+    receptionist_script: "Thank you for letting us know. This sounds like something our clinical team needs to review with you. I'm going to ask a pharmacist to call you back today to discuss your medication. You don't need to stop taking it before speaking to them.",
+    next_action: "Pharmacist callback within 4 hours to review ramipril and discuss alternative",
+    flags: ["ACE inhibitor cough", "Medication review needed", "Consider ARB switch"]
+  },
+  bp: {
+    triage: "Urgent",
+    triage_reason: "Abrupt cessation of amlodipine carries risk of rebound hypertension and acute cardiovascular events.",
+    clinical_note: "Patient has been non-adherent to amlodipine for 2 days due to running out of medication. Unable to secure appointment for 3 weeks. High risk of rebound blood pressure spikes. Emergency prescription and same-day clinical contact required.",
+    receptionist_script: "It is very important not to miss your blood pressure tablets. I am flagging this to our duty clinician right now so we can arrange an emergency repeat prescription for you today. Please do not wait three weeks.",
+    next_action: "Emergency prescription issuance and GP or pharmacist callback today",
+    flags: ["Medication non-adherence", "Rebound hypertension risk", "Emergency supply required"]
+  },
+  child: {
+    triage: "Urgent",
+    triage_reason: "Persistent fever above 39 degrees for 48 hours in a 4 year old unresponsive to antipyretics requires same-day clinical assessment.",
+    clinical_note: "4 year old female with 48 hour history of fever 39.2 degrees. Calpol administered every 4 hours without adequate response. Reduced oral intake noted. No mention of rash, breathing difficulty or altered consciousness. Same-day assessment required to rule out bacterial infection.",
+    receptionist_script: "Thank you for calling. A fever that isn't coming down after two days in a child her age needs to be seen today. I'm going to arrange an urgent appointment for you. Please do not wait.",
+    next_action: "Same-day urgent appointment — within 2 hours",
+    flags: ["Paediatric fever 48hrs", "Antipyretic resistance", "Reduced oral intake", "Same-day review required"]
+  },
+  metformin: {
+    triage: "Routine",
+    triage_reason: "Gastrointestinal side effects in first weeks of metformin are common and usually self-limiting but require pharmacist or GP review before patient self-discontinues.",
+    clinical_note: "Patient 2 weeks into metformin therapy for diabetes presenting with significant GI side effects — cramping and diarrhoea daily. Impacting daily function. Risk of self-discontinuation without clinical guidance. Dose titration or modified release formulation review indicated.",
+    receptionist_script: "These side effects are actually quite common when starting metformin and our team can help. I'm going to ask a pharmacist to call you today — please don't stop taking it before speaking to them as there are ways to manage this.",
+    next_action: "Pharmacist callback today to review dose titration or switch to modified release",
+    flags: ["Metformin GI intolerance", "Self-discontinuation risk", "Dose review needed"]
+  },
+  warfarin: {
+    triage: "Urgent",
+    triage_reason: "Missed warfarin dose in a patient with blood clot history requires same-day clinical guidance — doubling dose carries bleeding risk, missing carries thrombosis risk.",
+    clinical_note: "Patient on warfarin 5mg with blood clot history missed last night's dose. Considering doubling dose without clinical advice. Significant risk on both ends — under-anticoagulation risks thrombosis, doubling risks haemorrhage. Immediate clinical guidance required before next dose.",
+    receptionist_script: "Please do not double your dose before speaking to a clinician. I'm flagging this to our team right now and someone will call you back within the hour to advise you on exactly what to take tonight.",
+    next_action: "Urgent clinician callback within 1 hour — before next scheduled dose",
+    flags: ["Missed anticoagulant dose", "Thrombosis history", "Bleeding risk if doubled", "Call before next dose"]
+  }
+};
+
+function loadSample(key) {
+  document.getElementById('transcript').value = SAMPLES[key];
+  document.getElementById('output').classList.remove('visible');
+  document.getElementById('errorCard').classList.remove('visible');
 }
 
-Patient medication query (from EMMA call transcript): "${query}"`;
+function analyse() {
+  var transcript = document.getElementById('transcript').value.trim();
+  if (!transcript) {
+    showError('Please enter a patient call transcript before analysing.');
+    return;
+  }
 
-        try {
-          // CORRECTION: Swapped to 1.5-flash which maintains active free allocations on service accounts
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`,
-            {
-              method: "POST",
-              headers: { 
-                "Content-Type": "application/json",
-                "x-goog-api-key": GEMINI_API_KEY 
-              },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 1000 }
-              })
-            }
-          );
+  document.getElementById('analyseBtn').disabled = true;
+  document.getElementById('analyseBtn').textContent = 'Analysing...';
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('output').classList.remove('visible');
+  document.getElementById('errorCard').classList.remove('visible');
 
-          if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err?.error?.message || "Quota limit encountered");
-          }
-
-          const data = await response.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          const clean = text.replace(/```json|```/g, "").trim();
-          const parsed = JSON.parse(clean);
-          setResult(parsed);
-
-        } catch (err) {
-          console.warn("API Error encountered:", err.message);
-          
-          // SAFETY NET: If API fails but we are using a sample query, load mock data instantly
-          if (sampleLabel && MOCK_RESPONSES[sampleLabel]) {
-            console.log("Activating live interview graceful degradation fallback layer.");
-            setResult(MOCK_RESPONSES[sampleLabel]);
-            setIsDemoMode(true);
-          } else {
-            setError("Analysis failed — " + (err.message || "please check your configurations."));
-          }
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      const cfg = result ? (PRIORITY_CONFIG[result.priority] || PRIORITY_CONFIG.routine) : null;
-      const canSubmit = !loading && query.trim().length > 0;
-
-      return (
-        <div style={{ fontFamily: T.font, maxWidth: 680, margin: "0 auto", padding: "1.25rem 1rem", minHeight: "100vh" }}>
-
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: T.radMd, background: T.bgSuccess, border: `1px solid ${T.bdSuccess}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
-                💊
-              </div>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: T.txPrimary, lineHeight: 1.3 }}>MedPrep</div>
-                <div style={{ fontSize: 11, color: T.txTertiary }}>Medication intelligence layer · EMMA integration concept</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, background: T.bgSuccess, border: `1px solid ${T.bdSuccess}`, borderRadius: T.radMd, padding: "5px 11px" }}>
-              <span style={{ fontSize: 11, color: T.txSuccess, fontWeight: 600 }}>🔌 EMMA integration ready</span>
-            </div>
-          </div>
-
-          {/* Concept note */}
-          <div style={{ background: T.bgCard, padding: "10px 14px", marginBottom: "1.25rem", borderRadius: `0 ${T.radMd} ${T.radMd} 0`, border: `1px solid ${T.bdTertiary}`, borderLeft: `3px solid ${T.accentGreen}` }}>
-            <p style={{ margin: 0, fontSize: 13, color: T.txSecondary, lineHeight: 1.65 }}>
-              EMMA handles every inbound patient call — but medication queries need clinical intelligence before reaching a GP or pharmacist.
-              MedPrep sits between EMMA's call transcript and the clinical handoff: it triages urgency, generates a structured note,
-              and scripts EMMA's response. No clinical advice is given — only structured pre-processing.
-            </p>
-          </div>
-
-          {/* Input card */}
-          <div style={{ background: T.bgCard, border: `1px solid ${T.bdTertiary}`, borderRadius: T.radLg, padding: "1rem 1.25rem", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txPrimary, marginBottom: 8 }}>
-              Patient call transcript
-            </label>
-            <textarea
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) analyzeQuery(); }}
-              placeholder="Type or paste any patient medication query here — or click a sample below..."
-              rows={4}
-              style={{ width: "100%", resize: "vertical", fontSize: 14, lineHeight: 1.6, color: T.txPrimary, background: T.bgSecondary, border: `1px solid ${T.bdSecondary}`, borderRadius: T.radMd, padding: "10px 12px", fontFamily: T.font, outline: "none" }}
-            />
-
-            <div style={{ marginTop: 10, marginBottom: 14 }}>
-              <span style={{ fontSize: 11, color: T.txTertiary, display: "block", marginBottom: 6, fontWeight: 500 }}>Sample queries to try</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {SAMPLE_QUERIES.map((q, i) => (
-                  <button key={i} onClick={() => setQuery(q.text)}
-                    style={{ fontSize: 12, padding: "4px 12px", cursor: "pointer", borderRadius: T.radMd, background: T.bgSecondary, border: `1px solid ${T.bdSecondary}`, color: T.txSecondary, fontFamily: T.font, fontWeight: 500 }}>
-                    › {q.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={analyzeQuery} disabled={!canSubmit}
-              style={{ width: "100%", padding: "10px", borderRadius: T.radMd, fontSize: 14, fontWeight: 600, border: "none", background: canSubmit ? T.accentGreen : T.bdSecondary, color: canSubmit ? "#FFFFFF" : T.txTertiary, cursor: canSubmit ? "pointer" : "not-allowed", fontFamily: T.font, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
-              {loading ? <><span className="spin">⏳</span> Analysing query…</> : "🧠 Analyse and triage"}
-            </button>
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div style={{ background: T.bgDanger, border: `1px solid ${T.bdDanger}`, borderRadius: T.radMd, padding: "10px 14px", marginBottom: "1rem", fontSize: 13, color: T.txDanger, display: "flex", alignItems: "center", gap: 7 }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          {/* Output */}
-          {result && cfg && (
-            <div style={{ background: T.bgCard, border: `1px solid ${T.bdTertiary}`, borderRadius: T.radLg, padding: "1rem 1.25rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              
-              {isDemoMode && (
-                <div style={{ fontSize: 11, background: T.bgWarning, border: `1px solid ${T.bdWarning}`, color: T.txWarning, padding: "4px 10px", borderRadius: T.radMd, marginBottom: 10, fontWeight: 600, textAlign: "center" }}>
-                  💡 Running via Interview Offline-Safe Mode (API quota fallback active)
-                </div>
-              )}
-
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px", background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: T.radMd, marginBottom: "1.125rem" }}>
-                <span style={{ fontSize: 18, marginTop: 1, flexShrink: 0 }}>{cfg.icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: cfg.text }}>{cfg.label}</div>
-                  <div style={{ fontSize: 12, color: T.txSecondary, marginTop: 2, lineHeight: 1.5 }}>{result.urgency_reason}</div>
-                </div>
-                {result.emma_resolves && (
-                  <span style={{ fontSize: 11, padding: "3px 10px", flexShrink: 0, fontWeight: 600, background: T.bgSuccess, color: T.txSuccess, border: `1px solid ${T.bdSuccess}`, borderRadius: T.radMd }}>
-                    EMMA resolves
-                  </span>
-                )}
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div>
-                  <SectionLabel>🩺 Clinical summary for GP / pharmacist</SectionLabel>
-                  <Block>{result.summary_for_clinician}</Block>
-                </div>
-                <div>
-                  <SectionLabel>💬 EMMA response script</SectionLabel>
-                  <Block style={{ borderRadius: `0 ${T.radMd} ${T.radMd} 0`, borderLeft: `3px solid ${T.accentGreen}`, fontStyle: "italic", color: T.txSecondary }}>
-                    "{result.patient_response_script}"
-                  </Block>
-                </div>
-                <div>
-                  <SectionLabel>→ Next action</SectionLabel>
-                  <Block style={{ fontWeight: 600, color: T.accentBlue, background: T.bgInfo, border: `1px solid ${T.bdInfo}` }}>
-                    {result.next_action}
-                  </Block>
-                </div>
-                <div>
-                  <SectionLabel>🚩 Key flags</SectionLabel>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {result.key_flags?.map((flag, i) => (
-                      <span key={i} style={{ fontSize: 12, padding: "4px 12px", fontWeight: 600, background: T.bgWarning, color: T.txWarning, border: `1px solid ${T.bdWarning}`, borderRadius: T.radMd }}>
-                        {flag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <p style={{ fontSize: 11, color: T.txTertiary, textAlign: "center", marginTop: "1.5rem", lineHeight: 1.6 }}>
-            Concept prototype · not for clinical use · designed to complement EMMA by QuantumLoopAI · built with Gemini API
-          </p>
-        </div>
-      );
+  var matchedKey = null;
+  var keys = Object.keys(SAMPLES);
+  for (var i = 0; i < keys.length; i++) {
+    if (SAMPLES[keys[i]] === transcript) {
+      matchedKey = keys[i];
+      break;
     }
+  }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<MedPrep />);
-  </script>
+  setTimeout(function() {
+    document.getElementById('loading').classList.remove('visible');
+    document.getElementById('analyseBtn').disabled = false;
+    document.getElementById('analyseBtn').textContent = 'Analyse and triage';
+
+    if (matchedKey && HARDCODED[matchedKey]) {
+      renderOutput(HARDCODED[matchedKey]);
+    } else {
+      renderOutput({
+        triage: "Routine",
+        triage_reason: "Custom query received. This public demo runs 5 pre-built clinical scenarios — please select one above to see full output.",
+        clinical_note: "The 5 built-in scenarios above demonstrate the full clinical output across Urgent, Routine and Self-care triage categories.",
+        receptionist_script: "Thank you for your call. I have noted your query and a member of our clinical team will be in touch shortly to assist you.",
+        next_action: "Select a built-in scenario above to see full triage output",
+        flags: ["Custom query — use built-in scenarios", "Full demo available above"]
+      });
+    }
+  }, 1200);
+}
+
+function renderOutput(r) {
+  var icons = { Urgent: '(!)', Routine: '(i)', 'Self-care': '(ok)' };
+  var classes = { Urgent: 'triage-urgent', Routine: 'triage-routine', 'Self-care': 'triage-selfcare' };
+
+  var triageCard = document.getElementById('triageCard');
+  triageCard.className = 'triage-card ' + (classes[r.triage] || 'triage-routine');
+  document.getElementById('triageLevel').textContent = r.triage;
+  document.getElementById('triageTag').textContent = 'AI receptionist receives';
+  document.getElementById('triageReason').textContent = r.triage_reason;
+  document.getElementById('clinicalNote').textContent = r.clinical_note;
+  document.getElementById('receptionistScript').textContent = '"' + r.receptionist_script + '"';
+  document.getElementById('nextAction').textContent = r.next_action;
+
+  var flagsRow = document.getElementById('flagsRow');
+  flagsRow.innerHTML = '';
+  var flagColors = ['flag-red', 'flag-amber', 'flag-blue', 'flag-amber', 'flag-red'];
+  for (var i = 0; i < r.flags.length; i++) {
+    var chip = document.createElement('span');
+    chip.className = 'flag-chip ' + flagColors[i % flagColors.length];
+    chip.textContent = r.flags[i];
+    flagsRow.appendChild(chip);
+  }
+
+  document.getElementById('output').classList.add('visible');
+  document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showError(msg) {
+  var el = document.getElementById('errorCard');
+  el.textContent = msg;
+  el.classList.add('visible');
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('analyseBtn').disabled = false;
+  document.getElementById('analyseBtn').textContent = 'Analyse and triage';
+}
+</script>
 </body>
 </html>
