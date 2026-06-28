@@ -18,9 +18,7 @@ It takes the patient call transcript, analyses it, and returns:
 No clinical advice is given to the patient. ClearTriage is purely a pre-processing and triage layer.
 
 
-LIVE DEMO
-
-https://kumarkirankg.github.io/ClearTriage/ 
+LIVE DEMO https://kumarkirankg.github.io/ClearTriage/ 
 
 Five built-in scenarios:
 - ACE inhibitor cough
