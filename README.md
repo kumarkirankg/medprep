@@ -1,86 +1,79 @@
-# MedPrep - Medication Intelligence Layer
+ClearTriage
+Clinical AI Pre-processing - Medication Intelligence Layer
 
-**A concept prototype built for EMMA, an NHS GP surgery AI receptionist by QuantumLoopAI.**
+Clinics and telehealth platforms handle thousands of inbound patient calls every day. A large portion are medication queries — missed doses, side effects, running out of prescriptions, dosing questions.
 
-→ **[Live Demo](https://kumarkirankg.github.io/cleartriage)** 
+AI receptionists handle the call. But medication queries need clinical intelligence before they reach a doctor or pharmacist.
 
----
+ClearTriage sits in between.
 
-## What is this?
+It takes the patient call transcript, analyses it, and returns:
 
-GP surgeries receive hundreds of inbound patient calls every day. A large portion are medication queries - missed doses, side effects, running out of prescriptions, dosing questions for children.
+- Triage priority — Urgent, Routine, or Self-care
+- Structured clinical note — ready for the doctor or pharmacist
+- Scripted response — for the AI receptionist to read back to the patient
+- Next action — with a realistic timeframe
+- Key clinical flags — surfaced immediately for the clinical team
 
-EMMA handles the call. But medication queries need clinical intelligence before they reach a GP or pharmacist.
+No clinical advice is given to the patient. ClearTriage is purely a pre-processing and triage layer.
 
-**MedPrep sits in between.**
 
-It takes EMMA's call transcript, analyses it using Gemini API, and returns:
+LIVE DEMO
 
-- A **triage priority** - Urgent, Routine, or Self-care
-- A **structured clinical note** ready for the GP or pharmacist
-- A **scripted response** for EMMA to read back to the patient
-- A **next action** with a realistic timeframe
-- **Key clinical flags** to surface immediately
+[your GitHub Pages link]
 
-No clinical advice is given to the patient. MedPrep is purely a pre-processing and triage layer.
+Five built-in scenarios:
+- ACE inhibitor cough
+- Ran out of BP tablets
+- Child's fever not settling
+- Metformin side effects
+- Missed warfarin dose
 
----
 
-## Demo
+HOW IT WORKS
 
-Try it live - no login, no install needed.
+Patient call transcript
+        |
+  ClearTriage analyses
+        |
+  Triage priority
+  Clinical note for doctor
+  AI receptionist response script
+  Next action + timeframe
+  Key clinical flags
+        |
+  Clinical team receives structured output
 
-Three sample queries are pre-loaded (ACE inhibitor cough, missed BP medication, child's fever) or type any medication query directly into the box.
 
----
+INTEGRATION CONCEPT
 
-## How it works
+ClearTriage is designed to complement any AI receptionist system handling high volume patient calls. The integration would work as follows:
 
-```
-Patient call
-     ↓
-EMMA transcribes the query
-     ↓
-MedPrep analyses it via Gemini API
-     ↓
-Returns structured triage JSON
-     ↓
-EMMA reads scripted response to patient
-Clinical note routed to GP / pharmacist
-```
+- AI receptionist detects medication-related call intent
+- Transcript passed to ClearTriage via webhook on call close
+- ClearTriage returns structured JSON output
+- Clinical note routes to doctor or pharmacist via existing clinical system integration
+- Response script passed back to AI receptionist for patient communication
+- All outputs logged for clinical audit
 
-The frontend is a single HTML file hosted on GitHub Pages. 
----
 
-## Tech stack
+CLINICAL SAFETY
 
-| Layer | Technology |
-|---|---|
-| Frontend | React (via CDN), plain HTML/CSS |
-| AI model | Gemini |
-| Hosting | GitHub Pages (free) |
+- No clinical advice is given to the patient at any point
+- ClearTriage is a pre-processing layer only — all clinical decisions remain with the clinical team
+- Designed with clinical safety principles in mind
+- Concept prototype — not for clinical use
 
----
 
-## Triage outputs
+BUILT WITH
 
-| Priority | When it applies |
-|---|---|
-| 🔴 Urgent | Potential adverse drug reaction, abrupt cessation risk, symptoms requiring same-day review |
-| 🔵 Routine | Queries needing a clinician but not time-critical |
-| 🟢 Self-care | Minor queries that can be resolved with pharmacy advice or patient information |
+- Claude — AI analysis and clinical output development
+- HTML and JavaScript — frontend interface
+- GitHub Pages — public demo hosting
 
----
 
-## Limitations & disclaimers
+ABOUT
 
-- This is a **concept prototype only** - not validated for clinical use
-- MedPrep does not give clinical advice to patients
-- All triage outputs should be reviewed by a qualified clinician before action
-- Built to demonstrate an integration concept between an AI receptionist and a clinical pre-processing layer
+Built by Kiran Kumar as a concept prototype exploring how AI pre-processing can reduce clinical staff workload in high volume patient call environments.
 
----
-
-## About
-
-Built as a concept integration for **EMMA by QuantumLoopAI** - an AI receptionist designed for NHS GP surgeries.
+Concept prototype · not for clinical use · designed to complement AI receptionist systems in high volume clinical environments
